@@ -1,4 +1,5 @@
 #!/bin/sh
+pwd='pwd'
 case "$OSTYPE" in
     solaris*) echo "SOLARIS" ;;
     darwin*)
@@ -15,6 +16,10 @@ case "$OSTYPE" in
         git -C ~/.oh-my-zsh/custom/plugins/zsh-apple-touchbar/ pull
         git -C ~/.oh-my-zsh/custom/plugins/zsh-completions/ pull
         git -C ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/ pull
+        cp ~/.bash-profile macos/dotfiles/
+        cp ~/.Brewfile macos/dotfiles/
+        cp ~/.gitconfig macos/dotfiles/
+        cp ~/.zshrc macos/dotfiles/
         exit 0
     ;;
     linux*)   echo "LINUX" ;;
