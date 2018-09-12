@@ -9,7 +9,14 @@ export ZSH=/Users/QianliMa-MAC/.oh-my-zsh
 # ZSH_THEME="agnoster"
 POWERLEVEL9K_MODE='nerdfont-complete'
 ZSH_THEME="powerlevel9k/powerlevel9k"
-
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon ssh user root_indicator dir dir_writable vcs)
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=3
+POWERLEVEL9K_SHORTEN_STRATEGY=truncate_middle
+# POWERLEVEL9K_PROMPT_ON_NEWLINE=true
+# POWERLEVEL9K_RPROMPT_ON_NEWLINE=true
+# POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=( status background_jobs history battery)
+POWERLEVEL9K_DISABLE_RPROMPT=true
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon battery time ssh user  root_indicator history background_jobs status newline dir dir_writable vcs)
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
 
