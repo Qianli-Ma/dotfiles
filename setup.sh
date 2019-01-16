@@ -11,8 +11,10 @@ case "$OSTYPE" in
         echo "Running on OSX"
         # MACOS system
         # Setup oh-my-zsh
+        cd $dir
         $dir/macos/oh-my-zsh.sh
         # Install homebrew
+        cd $dir
         $dir/macos/brew.sh
         cd ~/Library/Fonts && curl -fLo "Droid Sans Mono for Powerline Nerd Font Complete.otf" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf
         exit 0
