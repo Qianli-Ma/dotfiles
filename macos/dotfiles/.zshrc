@@ -99,3 +99,5 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/l
 eval $(thefuck --alias --enable-experimental-instant-mode)
 # source ~/.oh-my-zsh/plugins/incr/incr*.zsh
 export PATH="/usr/local/opt/qt/bin:$PATH"
+export PATH="/usr/local/opt/bison/bin:$PATH"
+export PATH="/usr/local/opt/flex/bin:$PATH"
