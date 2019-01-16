@@ -20,6 +20,9 @@ case "$OSTYPE" in
         cp ~/.Brewfile macos/dotfiles/
         # cp ~/.gitconfig macos/dotfiles/
         cp ~/.zshrc macos/dotfiles/
+        git add *
+        git commit -m "autoupdate"
+        git push
         exit 0
     ;;
     linux*)   echo "LINUX" ;;
