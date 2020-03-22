@@ -1,5 +1,5 @@
 # Path to your oh-my-zsh installation.
-export ZSH=/Users/QianliMa-MAC/.oh-my-zsh
+export ZSH="/home/qianli/.oh-my-zsh"
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
@@ -16,7 +16,7 @@ POWERLEVEL9K_SHORTEN_STRATEGY=truncate_middle
 # POWERLEVEL9K_RPROMPT_ON_NEWLINE=true
 # POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=( status background_jobs history battery)
 POWERLEVEL9K_DISABLE_RPROMPT=true
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon battery time ssh user root_indicator history background_jobs status newline virtualenv dir dir_writable vcs)
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon battery time ssh user  root_indicator history background_jobs status newline virtualenv dir dir_writable vcs)
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
 
@@ -59,7 +59,7 @@ POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon battery time ssh user root_indicator 
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git command-not-found extract osx zsh-autosuggestions zsh-apple-touchbar zsh-syntax-highlighting zsh-completions)
+plugins=(git command-not-found extract osx zsh-autosuggestions zsh-syntax-highlighting zsh-completions)
 autoload -U compinit && compinit
 # User configuration
 
@@ -98,11 +98,3 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/l
 
 eval $(thefuck --alias --enable-experimental-instant-mode)
 # source ~/.oh-my-zsh/plugins/incr/incr*.zsh
-export PATH="/usr/local/opt/qt/bin:$PATH"
-export PATH="/usr/local/opt/bison/bin:$PATH"
-export PATH="/usr/local/opt/flex/bin:$PATH"
-source ~/.iterm2_shell_integration.zsh
-export PATH="/usr/local/opt/openssl/bin:$PATH"
-source $HOME/.oh-my-zsh/custom/plugins/zsh-histdb/sqlite-history.zsh
-autoload -Uz add-zsh-hook
-add-zsh-hook precmd histdb-update-outcome
