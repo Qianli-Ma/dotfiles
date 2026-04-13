@@ -107,6 +107,18 @@ configure_homebrew_mirror() {
     log_info "HOMEBREW_API_DOMAIN=${HOMEBREW_API_DOMAIN:-unset}"
 }
 
+show_brewfile_plan() {
+    local bundle_items total_items
+
+    bundle_items="$(brew bundle list --all --file "$brewfile" || true)"
+    total_items="$(printf '%s\n' "$bundle_items" | sed '/^$/d' | wc -l | tr -d ' ')"
+
+    if [ -n "$bundle_items" ]; then
+        log_info "Brewfile contains $total_items entries to check/install."
+        printf '%s[pending]%s %s\n' "$c_blue" "$c_reset" "$bundle_items"
+    fi
+}
+
 log_stage "Configure Homebrew mirrors"
 configure_homebrew_mirror
 
@@ -136,5 +148,6 @@ run_cmd brew install zsh
 if [ -n "$brewfile" ] && [ -f "$brewfile" ]; then
     current_step=$((current_step + 1))
     printf '\n%s[stage %d/%d]%s %s\n' "$c_blue" "$current_step" "$total_steps" "$c_reset" "Install Brewfile packages"
-    run_cmd brew bundle --file "$brewfile"
+    show_brewfile_plan
+    run_cmd brew bundle --verbose --file "$brewfile"
 fi
