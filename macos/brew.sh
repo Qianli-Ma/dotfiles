@@ -63,6 +63,11 @@ handle_error() {
 
 trap 'handle_error $? $LINENO "$BASH_COMMAND"' ERR
 
+ensure_sudo_access() {
+    log_info "Homebrew installation needs administrator access."
+    run_cmd sudo -v
+}
+
 pick_fastest_url() {
     local best_url=""
     local best_time="999999"
@@ -119,8 +124,9 @@ configure_homebrew_mirror
 
 if ! command -v brew >/dev/null 2>&1; then
     log_stage "Install Homebrew"
-    printf '%s[run]%s %s\n' "$c_yellow" "$c_reset" 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    ensure_sudo_access
+    printf '%s[run]%s %s\n' "$c_yellow" "$c_reset" '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 else
     current_step=$((current_step + 1))
     printf '\n%s[stage %d/%d]%s %s\n' "$c_blue" "$current_step" "$total_steps" "$c_reset" "Install Homebrew"
