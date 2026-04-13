@@ -7,6 +7,7 @@ export CHSH=no
 export KEEP_ZSHRC=yes
 export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
 custom_dir="${ZSH_CUSTOM:-$ZSH/custom}"
+export PATH="/snap/bin:$PATH"
 
 color_enabled=0
 if [ -t 1 ]; then
@@ -101,9 +102,9 @@ configure_apt_mirror() {
 
     log_stage "Run mirrorselect"
     if [ -n "$release_codename" ]; then
-        run_cmd mirrorselect --release "$release_codename"
+        run_cmd /snap/bin/mirrorselect --release "$release_codename"
     else
-        run_cmd mirrorselect
+        run_cmd /snap/bin/mirrorselect
     fi
 }
 

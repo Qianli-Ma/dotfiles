@@ -1,5 +1,6 @@
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+export PATH="/snap/bin:$PATH"
 
 # Powerlevel10k is installed by setup but intentionally left inactive.
 # To enable it later, set: ZSH_THEME="powerlevel10k/powerlevel10k"
