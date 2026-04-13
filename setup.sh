@@ -42,9 +42,9 @@ case "$OSTYPE" in
     ;;
     linux*)
         echo "Running on Linux"
-        sudo apt install zsh
         "$dir/linux/oh-my-zsh.sh"
-        cd ~/Library/Fonts && curl -fLo "Droid Sans Mono for Powerline Nerd Font Complete.otf" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf
+        rsync -a --exclude ".DS_Store" "$dir/linux/" "$HOME/"
+        echo "Setup is complete. Open a new terminal session so the updated shell configuration is picked up."
     ;;
     bsd*)     echo "BSD" ;;
     msys*)    echo "WINDOWS" ;;
