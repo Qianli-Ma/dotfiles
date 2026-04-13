@@ -81,6 +81,7 @@ clone_or_update() {
 
 wait_for_apt_to_finish() {
     local waited=0
+    local lock_file holder_pids holder_pid
 
     if ! command -v apt-get >/dev/null 2>&1; then
         return 0
@@ -94,6 +95,21 @@ wait_for_apt_to_finish() {
             log_info "Another apt operation is running. Waiting for it to finish before continuing."
             waited=1
         fi
+
+        for lock_file in \
+            /var/lib/dpkg/lock-frontend \
+            /var/lib/dpkg/lock \
+            /var/lib/apt/lists/lock \
+            /var/cache/apt/archives/lock; do
+            holder_pids="$(sudo fuser "$lock_file" 2>/dev/null || true)"
+            if [ -n "$holder_pids" ]; then
+                log_info "Lock file in use: $lock_file"
+                for holder_pid in $holder_pids; do
+                    ps -p "$holder_pid" -o pid=,ppid=,user=,etime=,command= 2>/dev/null || true
+                done
+            fi
+        done
+
         sleep 5
     done
 }
