@@ -86,17 +86,7 @@ pick_fastest_url() {
 }
 
 configure_homebrew_mirror() {
-    local brew_git_remote core_git_remote bottle_domain api_domain
-
-    brew_git_remote="$(pick_fastest_url \
-        "https://github.com/Homebrew/brew" \
-        "https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git" \
-        "https://mirrors.ustc.edu.cn/brew.git")"
-
-    core_git_remote="$(pick_fastest_url \
-        "https://github.com/Homebrew/homebrew-core" \
-        "https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git" \
-        "https://mirrors.ustc.edu.cn/homebrew-core.git")"
+    local bottle_domain api_domain
 
     bottle_domain="$(pick_fastest_url \
         "https://ghcr.io/v2/homebrew/core" \
@@ -108,13 +98,11 @@ configure_homebrew_mirror() {
         "https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api" \
         "https://mirrors.ustc.edu.cn/homebrew-bottles/api")"
 
-    [ -n "$brew_git_remote" ] && export HOMEBREW_BREW_GIT_REMOTE="$brew_git_remote"
-    [ -n "$core_git_remote" ] && export HOMEBREW_CORE_GIT_REMOTE="$core_git_remote"
     [ -n "$bottle_domain" ] && export HOMEBREW_BOTTLE_DOMAIN="$bottle_domain"
     [ -n "$api_domain" ] && export HOMEBREW_API_DOMAIN="$api_domain"
 
-    log_info "HOMEBREW_BREW_GIT_REMOTE=${HOMEBREW_BREW_GIT_REMOTE:-unset}"
-    log_info "HOMEBREW_CORE_GIT_REMOTE=${HOMEBREW_CORE_GIT_REMOTE:-unset}"
+    log_info "HOMEBREW_BREW_GIT_REMOTE=official-default"
+    log_info "HOMEBREW_CORE_GIT_REMOTE=official-default"
     log_info "HOMEBREW_BOTTLE_DOMAIN=${HOMEBREW_BOTTLE_DOMAIN:-unset}"
     log_info "HOMEBREW_API_DOMAIN=${HOMEBREW_API_DOMAIN:-unset}"
 }
