@@ -1,22 +1,14 @@
 # Path to your oh-my-zsh installation.
-export ZSH=/Users/QianliMa-MAC/.oh-my-zsh
+export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-#ZSH_THEME="robby-mod-mac"
-# ZSH_THEME="agnoster"
-POWERLEVEL9K_MODE='nerdfont-complete'
-ZSH_THEME="powerlevel9k/powerlevel9k"
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon ssh user root_indicator dir dir_writable vcs)
-POWERLEVEL9K_SHORTEN_DIR_LENGTH=3
-POWERLEVEL9K_SHORTEN_STRATEGY=truncate_middle
-# POWERLEVEL9K_PROMPT_ON_NEWLINE=true
-# POWERLEVEL9K_RPROMPT_ON_NEWLINE=true
-# POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=( status background_jobs history battery)
-POWERLEVEL9K_DISABLE_RPROMPT=true
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon battery time ssh user root_indicator history background_jobs status newline virtualenv dir dir_writable vcs)
+# ZSH_THEME="robbyrussell"
+# Powerlevel10k is installed by setup but intentionally left inactive.
+# To enable it later, set: ZSH_THEME="powerlevel10k/powerlevel10k"
+ZSH_THEME=""
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
 
@@ -60,7 +52,6 @@ POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon battery time ssh user root_indicator 
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git command-not-found extract osx zsh-autosuggestions zsh-apple-touchbar zsh-syntax-highlighting zsh-completions)
-autoload -U compinit && compinit
 # User configuration
 
 # export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
@@ -94,15 +85,29 @@ source $ZSH/oh-my-zsh.sh
 alias dir="ls -al"
 alias pdnsd-restart="sudo killall -KILL pdnsd; sudo /usr/local/Cellar/pdnsd/1.2.9a-par/sbin/pdnsd -s -d;sudo killall -HUP mDNSResponder"
 eval $(/usr/libexec/path_helper -s)
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:$PATH"
+
+for prefix in /opt/homebrew /usr/local; do
+  if [ -d "$prefix/bin" ]; then
+    export PATH="$prefix/sbin:$prefix/bin:$PATH"
+  fi
+done
+
+export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
 eval $(thefuck --alias --enable-experimental-instant-mode)
 # source ~/.oh-my-zsh/plugins/incr/incr*.zsh
-export PATH="/usr/local/opt/qt/bin:$PATH"
-export PATH="/usr/local/opt/bison/bin:$PATH"
-export PATH="/usr/local/opt/flex/bin:$PATH"
-source ~/.iterm2_shell_integration.zsh
-export PATH="/usr/local/opt/openssl/bin:$PATH"
-source $HOME/.oh-my-zsh/custom/plugins/zsh-histdb/sqlite-history.zsh
-autoload -Uz add-zsh-hook
-add-zsh-hook precmd histdb-update-outcome
+
+for prefix in /opt/homebrew /usr/local; do
+  [ -d "$prefix/opt/qt/bin" ] && export PATH="$prefix/opt/qt/bin:$PATH"
+  [ -d "$prefix/opt/bison/bin" ] && export PATH="$prefix/opt/bison/bin:$PATH"
+  [ -d "$prefix/opt/flex/bin" ] && export PATH="$prefix/opt/flex/bin:$PATH"
+  [ -d "$prefix/opt/openssl/bin" ] && export PATH="$prefix/opt/openssl/bin:$PATH"
+done
+
+[ -f "$HOME/.iterm2_shell_integration.zsh" ] && source "$HOME/.iterm2_shell_integration.zsh"
+[ -f "$HOME/.oh-my-zsh/custom/plugins/zsh-histdb/sqlite-history.zsh" ] && source "$HOME/.oh-my-zsh/custom/plugins/zsh-histdb/sqlite-history.zsh"
+
+if typeset -f histdb-update-outcome >/dev/null 2>&1; then
+  autoload -Uz add-zsh-hook
+  add-zsh-hook precmd histdb-update-outcome
+fi

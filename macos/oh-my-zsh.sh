@@ -1,13 +1,36 @@
 #!/bin/bash
-# Install oh-my-zsh
-sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-# Apple touchbar plugin
-git clone https://github.com/floor114/zsh-apple-touchbar ~/.zsh/zsh-apple-touchbar
-# Auto Suggestions
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-# Additional completion definitions for Zsh.
-git clone https://github.com/zsh-users/zsh-completions ~/.oh-my-zsh/custom/plugins/zsh-completions
-#ZSH Syntax Highlighting
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-#Powerlevel9K
-git clone https://github.com/bhilburn/powerlevel9k.git ~/.oh-my-zsh/custom/themes/powerlevel9k
+
+set -euo pipefail
+
+export RUNZSH=no
+export CHSH=no
+export KEEP_ZSHRC=yes
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+custom_dir="${ZSH_CUSTOM:-$ZSH/custom}"
+
+clone_or_update() {
+    local repo="$1"
+    local destination="$2"
+
+    if [ -d "$destination/.git" ]; then
+        git -C "$destination" pull --ff-only
+    else
+        git clone "$repo" "$destination"
+    fi
+}
+
+if [ ! -d "$ZSH" ]; then
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+mkdir -p "$custom_dir/plugins" "$custom_dir/themes"
+
+clone_or_update https://github.com/floor114/zsh-apple-touchbar "$custom_dir/plugins/zsh-apple-touchbar"
+clone_or_update https://github.com/zsh-users/zsh-autosuggestions "$custom_dir/plugins/zsh-autosuggestions"
+clone_or_update https://github.com/zsh-users/zsh-completions "$custom_dir/plugins/zsh-completions"
+clone_or_update https://github.com/zsh-users/zsh-syntax-highlighting.git "$custom_dir/plugins/zsh-syntax-highlighting"
+clone_or_update https://github.com/romkatv/powerlevel10k.git "$custom_dir/themes/powerlevel10k"
+
+if command -v brew >/dev/null 2>&1; then
+    brew install --cask font-meslo-lg-nerd-font
+fi
