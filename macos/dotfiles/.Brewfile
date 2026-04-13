@@ -109,7 +109,7 @@ brew "virtualenv"
 brew "wakeonlan"
 brew "wget"
 brew "wimlib"
-brew "youtube-dl"
+brew "yt-dlp"
 brew "zlib", link: true
 brew "borgbackup/tap/borgbackup-fuse"
 brew "gromgit/fuse/ntfs-3g-mac"
