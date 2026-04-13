@@ -79,40 +79,32 @@ clone_or_update() {
 }
 
 configure_apt_mirror() {
-    local codename temp_dir generated_sources
+    local release_codename
 
-    if [ ! -f /etc/debian_version ]; then
-        log_info "Not a Debian system. Skipping apt mirror selection."
+    if ! command -v apt-get >/dev/null 2>&1; then
+        log_info "apt-get is not available. Skipping mirror selection."
         return 0
     fi
 
-    if ! command -v netselect-apt >/dev/null 2>&1; then
-        log_stage "Install netselect-apt"
+    if ! command -v snap >/dev/null 2>&1; then
+        log_stage "Install snapd"
         run_cmd sudo apt-get update
-        run_cmd sudo apt-get install -y netselect-apt
+        run_cmd sudo apt-get install -y snapd
     fi
 
-    codename="$(. /etc/os-release 2>/dev/null && printf '%s' "${VERSION_CODENAME:-}")"
-    if [ -z "$codename" ]; then
-        log_info "Could not determine Debian codename. Leaving apt mirror configuration unchanged."
-        return 0
+    if ! snap list mirrorselect >/dev/null 2>&1; then
+        log_stage "Install mirrorselect"
+        run_cmd sudo snap install mirrorselect
     fi
 
-    temp_dir="$(mktemp -d)"
-    generated_sources="$temp_dir/sources.list"
+    release_codename="$(. /etc/os-release 2>/dev/null && printf '%s' "${VERSION_CODENAME:-}")"
 
-    log_stage "Select Debian apt mirror"
-    if (
-        cd "$temp_dir" &&
-        sudo netselect-apt -n "$codename"
-    ) && [ -f "$generated_sources" ]; then
-        run_cmd sudo cp /etc/apt/sources.list "/etc/apt/sources.list.bak.$(date +%Y%m%d%H%M%S)"
-        run_cmd sudo cp "$generated_sources" /etc/apt/sources.list
+    log_stage "Run mirrorselect"
+    if [ -n "$release_codename" ]; then
+        run_cmd mirrorselect --release "$release_codename"
     else
-        log_info "netselect-apt did not produce a usable sources.list. Leaving the current apt mirror unchanged."
+        run_cmd mirrorselect
     fi
-
-    run_cmd rm -rf "$temp_dir"
 }
 
 install_linux_packages() {
