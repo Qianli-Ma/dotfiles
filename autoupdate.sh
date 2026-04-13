@@ -41,6 +41,7 @@ case "$OSTYPE" in
 
         [ -f "$HOME/.bash-profile" ] && cp "$HOME/.bash-profile" "$dir/macos/dotfiles/"
         [ -f "$HOME/.zshrc" ] && cp "$HOME/.zshrc" "$dir/macos/dotfiles/"
+        [ -f "$HOME/.p10k.zsh" ] && cp "$HOME/.p10k.zsh" "$dir/macos/dotfiles/"
 
         mkdir -p "$dir/macos/iterm2"
         if defaults export com.googlecode.iterm2 - >/dev/null 2>&1; then
@@ -49,6 +50,7 @@ case "$OSTYPE" in
 
         git add "$dir/macos/dotfiles/.Brewfile" \
             "$dir/macos/dotfiles/.zshrc" \
+            "$dir/macos/dotfiles/.p10k.zsh" \
             "$dir/macos/dotfiles/.bash-profile" \
             "$dir/macos/iterm2/com.googlecode.iterm2.plist"
         git commit -m "autoupdate"

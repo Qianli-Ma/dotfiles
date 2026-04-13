@@ -82,6 +82,13 @@ close_current_terminal() {
     esac
 }
 
+backup_zshrc() {
+    if [ -f "$HOME/.zshrc" ]; then
+        log_stage "Backup existing .zshrc"
+        run_cmd cp "$HOME/.zshrc" "$HOME/.zshrc.bak"
+    fi
+}
+
 finish_and_reload() {
     log_stage "Complete"
     log_success "Setup finished successfully."
@@ -118,12 +125,13 @@ case "$OSTYPE" in
             exit 0
         fi
 
-        total_steps=6
+        total_steps=7
         log_stage "Platform detection: macOS"
         log_stage "Homebrew bootstrap"
         run_cmd "$dir/macos/brew.sh" "$dir/macos/dotfiles/.Brewfile"
         log_stage "Oh My Zsh and plugins"
         run_cmd "$dir/macos/oh-my-zsh.sh"
+        backup_zshrc
         log_stage "Copy macOS dotfiles"
         run_cmd rsync -a --exclude ".DS_Store" "$dir/macos/dotfiles/" "$HOME/"
         log_stage "Apply iTerm2 preferences"
@@ -132,10 +140,11 @@ case "$OSTYPE" in
         finish_and_reload
     ;;
     linux*)
-        total_steps=4
+        total_steps=5
         log_stage "Platform detection: Linux"
         log_stage "Oh My Zsh, packages, and plugins"
         run_cmd "$dir/linux/oh-my-zsh.sh"
+        backup_zshrc
         log_stage "Copy Linux dotfiles"
         run_cmd rsync -a --exclude ".DS_Store" "$dir/linux/" "$HOME/"
 
