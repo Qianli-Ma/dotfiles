@@ -101,11 +101,45 @@ configure_apt_mirror() {
     release_codename="$(. /etc/os-release 2>/dev/null && printf '%s' "${VERSION_CODENAME:-}")"
 
     log_stage "Run mirrorselect"
+    run_mirrorselect "$release_codename"
+}
+
+run_mirrorselect() {
+    local release_codename="${1:-}"
+    local mirror_cmd=("/snap/bin/mirrorselect")
+    local output country_code
+
     if [ -n "$release_codename" ]; then
-        run_cmd /snap/bin/mirrorselect --release "$release_codename"
-    else
-        run_cmd /snap/bin/mirrorselect
+        mirror_cmd+=(--release "$release_codename")
     fi
+
+    printf '%s[run]%s %s\n' "$c_yellow" "$c_reset" "${mirror_cmd[*]}"
+    if output="$("${mirror_cmd[@]}" 2>&1)"; then
+        printf '%s\n' "$output"
+        return 0
+    fi
+
+    printf '%s\n' "$output"
+
+    if printf '%s' "$output" | grep -qi "specify one manually using --country"; then
+        printf '[wait] Enter a 2-letter country code for mirrorselect (for example: US, CN, DE): '
+        read -r country_code
+        if [ -z "$country_code" ]; then
+            log_error "No country code entered. Cannot continue mirror selection."
+            return 1
+        fi
+
+        mirror_cmd=("/snap/bin/mirrorselect" --country "$country_code")
+        if [ -n "$release_codename" ]; then
+            mirror_cmd+=(--release "$release_codename")
+        fi
+
+        printf '%s[run]%s %s\n' "$c_yellow" "$c_reset" "${mirror_cmd[*]}"
+        "${mirror_cmd[@]}"
+        return 0
+    fi
+
+    return 1
 }
 
 install_linux_packages() {
