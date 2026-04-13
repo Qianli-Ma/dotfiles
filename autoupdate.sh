@@ -12,6 +12,27 @@ update_git_repo() {
     fi
 }
 
+update_oh_my_zsh_components() {
+    local custom_dir="$1"
+    local repo_path
+
+    update_git_repo "$HOME/.oh-my-zsh"
+
+    if [ -d "$custom_dir/plugins" ]; then
+        for repo_path in "$custom_dir/plugins"/*; do
+            [ -d "$repo_path" ] || continue
+            update_git_repo "$repo_path"
+        done
+    fi
+
+    if [ -d "$custom_dir/themes" ]; then
+        for repo_path in "$custom_dir/themes"/*; do
+            [ -d "$repo_path" ] || continue
+            update_git_repo "$repo_path"
+        done
+    fi
+}
+
 case "$OSTYPE" in
     solaris*) echo "SOLARIS" ;;
     darwin*)
@@ -32,12 +53,7 @@ case "$OSTYPE" in
         fi
         brew bundle dump --force --file "$dir/macos/dotfiles/.Brewfile"
 
-        update_git_repo "$HOME/.oh-my-zsh"
-        update_git_repo "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
-        update_git_repo "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-apple-touchbar"
-        update_git_repo "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-completions"
-        update_git_repo "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
-        update_git_repo "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+        update_oh_my_zsh_components "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
         [ -f "$HOME/.bash-profile" ] && cp "$HOME/.bash-profile" "$dir/macos/dotfiles/"
         [ -f "$HOME/.zshrc" ] && cp "$HOME/.zshrc" "$dir/macos/dotfiles/"
@@ -57,7 +73,25 @@ case "$OSTYPE" in
         git push
         exit 0
     ;;
-    linux*)   echo "LINUX" ;;
+    linux*)
+        echo "Running on Linux"
+
+        if command -v apt-get >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get upgrade -y
+            sudo apt-get autoremove -y
+            sudo apt-get autoclean -y
+        fi
+
+        update_oh_my_zsh_components "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+
+        [ -f "$HOME/.zshrc" ] && cp "$HOME/.zshrc" "$dir/linux/.zshrc"
+
+        git add "$dir/linux/.zshrc"
+        git commit -m "autoupdate"
+        git push
+        exit 0
+    ;;
     bsd*)     echo "BSD" ;;
     msys*)    echo "WINDOWS" ;;
     *)        echo "unknown: $OSTYPE" ;;
