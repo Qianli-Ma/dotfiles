@@ -25,12 +25,12 @@ fi
 
 mkdir -p "$custom_dir/plugins" "$custom_dir/themes"
 
-clone_or_update https://github.com/floor114/zsh-apple-touchbar "$custom_dir/plugins/zsh-apple-touchbar"
+# clone_or_update https://github.com/floor114/zsh-apple-touchbar "$custom_dir/plugins/zsh-apple-touchbar"
 clone_or_update https://github.com/zsh-users/zsh-autosuggestions "$custom_dir/plugins/zsh-autosuggestions"
 clone_or_update https://github.com/zsh-users/zsh-completions "$custom_dir/plugins/zsh-completions"
 clone_or_update https://github.com/zsh-users/zsh-syntax-highlighting.git "$custom_dir/plugins/zsh-syntax-highlighting"
 clone_or_update https://github.com/romkatv/powerlevel10k.git "$custom_dir/themes/powerlevel10k"
 
 if command -v brew >/dev/null 2>&1; then
-    brew install --cask font-meslo-lg-nerd-font
+brew install --cask font-meslo-lg-nerd-font
 fi
