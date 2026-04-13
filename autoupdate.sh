@@ -33,6 +33,12 @@ update_oh_my_zsh_components() {
     fi
 }
 
+run_nonblocking() {
+    if ! "$@"; then
+        echo "Non-fatal failure, continuing: $*"
+    fi
+}
+
 case "$OSTYPE" in
     solaris*) echo "SOLARIS" ;;
     darwin*)
@@ -77,10 +83,10 @@ case "$OSTYPE" in
         echo "Running on Linux"
 
         if command -v apt-get >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get upgrade -y
-            sudo apt-get autoremove -y
-            sudo apt-get autoclean -y
+            run_nonblocking sudo apt-get update
+            run_nonblocking sudo apt-get upgrade -y
+            run_nonblocking sudo apt-get autoremove -y
+            run_nonblocking sudo apt-get autoclean -y
         fi
 
         update_oh_my_zsh_components "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
