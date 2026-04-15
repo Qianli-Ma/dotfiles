@@ -61,6 +61,17 @@ handle_error() {
 
 trap 'handle_error $? $LINENO "$BASH_COMMAND"' ERR
 
+sanitize_linux_brewfile() {
+    local file="$1"
+    local tmp_file
+
+    [ -f "$file" ] || return 0
+
+    tmp_file="$(mktemp)"
+    grep -v '^vscode "' "$file" > "$tmp_file" || true
+    mv "$tmp_file" "$file"
+}
+
 pick_fastest_url() {
     local best_url=""
     local best_time="999999"
@@ -139,6 +150,7 @@ init_homebrew_shellenv
 log_stage "Install Homebrew packages"
 run_cmd brew install fzf
 if [ -n "$brewfile" ] && [ -f "$brewfile" ]; then
+    sanitize_linux_brewfile "$brewfile"
     show_brewfile_plan
     run_cmd brew bundle --verbose --file "$brewfile"
 fi

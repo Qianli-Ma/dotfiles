@@ -56,6 +56,17 @@ configure_homebrew_mirror_env() {
     export HOMEBREW_API_DOMAIN="${HOMEBREW_API_DOMAIN:-https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api}"
 }
 
+sanitize_linux_brewfile() {
+    local file="$1"
+    local tmp_file
+
+    [ -f "$file" ] || return 0
+
+    tmp_file="$(mktemp)"
+    grep -v '^vscode "' "$file" > "$tmp_file" || true
+    mv "$tmp_file" "$file"
+}
+
 case "$OSTYPE" in
     solaris*) echo "SOLARIS" ;;
     darwin*)
@@ -112,6 +123,7 @@ case "$OSTYPE" in
             run_nonblocking brew upgrade
             run_nonblocking brew cleanup
             run_nonblocking brew bundle dump --force --file "$dir/linux/dotfiles/.Brewfile"
+            sanitize_linux_brewfile "$dir/linux/dotfiles/.Brewfile"
         fi
 
         update_oh_my_zsh_components "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
