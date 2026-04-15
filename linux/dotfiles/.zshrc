@@ -67,7 +67,14 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git command-not-found extract zsh-autosuggestions zsh-syntax-highlighting zsh-completions)
-autoload -U compinit && compinit
+
+# Some Linux systems leave a dangling Docker completion symlink in the vendor
+# completions directory, which makes compinit fail. Drop that directory when
+# the broken entry is present and let Oh My Zsh initialize completions once.
+if [[ -L /usr/share/zsh/vendor-completions/_docker && ! -e /usr/share/zsh/vendor-completions/_docker ]]; then
+  fpath=(${fpath:#/usr/share/zsh/vendor-completions})
+fi
+
 # User configuration
 
 # export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
