@@ -186,7 +186,8 @@ install_linux_packages() {
         wait_for_apt_to_finish
         run_cmd sudo apt-get update
         wait_for_apt_to_finish
-        run_cmd sudo apt-get install -y zsh git curl rsync fzf fonts-powerline
+        run_cmd sudo apt-get install -y zsh git curl rsync fonts-powerline
+        run_cmd sudo apt install -y fzf
     else
         log_info "apt-get is not available. On Debian-based systems, install: zsh git curl rsync fzf fonts-powerline"
         log_info "Continuing with Oh My Zsh setup using whatever is already installed."
