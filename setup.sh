@@ -140,13 +140,17 @@ case "$OSTYPE" in
         finish_and_reload
     ;;
     linux*)
-        total_steps=5
+        total_steps=7
         log_stage "Platform detection: Linux"
-        log_stage "Oh My Zsh, packages, and plugins"
+        log_stage "Linux base packages and mirrors"
+        run_cmd "$dir/linux/etc.sh"
+        log_stage "Homebrew bootstrap"
+        run_cmd "$dir/linux/homebrew.sh" "$dir/linux/dotfiles/.Brewfile"
+        log_stage "Oh My Zsh and plugins"
         run_cmd "$dir/linux/oh-my-zsh.sh"
         backup_zshrc
         log_stage "Copy Linux dotfiles"
-        run_cmd rsync -a --exclude ".DS_Store" "$dir/linux/" "$HOME/"
+        run_cmd rsync -a --exclude ".DS_Store" "$dir/linux/dotfiles/" "$HOME/"
 
         finish_and_reload
     ;;

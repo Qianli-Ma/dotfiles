@@ -39,16 +39,30 @@ run_nonblocking() {
     fi
 }
 
+init_brew_shellenv() {
+    if [ -x /opt/homebrew/bin/brew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x /usr/local/bin/brew ]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    elif [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    elif [ -x "$HOME/.linuxbrew/bin/brew" ]; then
+        eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
+    fi
+}
+
+configure_homebrew_mirror_env() {
+    export HOMEBREW_BOTTLE_DOMAIN="${HOMEBREW_BOTTLE_DOMAIN:-https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles}"
+    export HOMEBREW_API_DOMAIN="${HOMEBREW_API_DOMAIN:-https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api}"
+}
+
 case "$OSTYPE" in
     solaris*) echo "SOLARIS" ;;
     darwin*)
         echo "Running on macOS"
 
-        if [ -x /opt/homebrew/bin/brew ]; then
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-        elif [ -x /usr/local/bin/brew ]; then
-            eval "$(/usr/local/bin/brew shellenv)"
-        fi
+        init_brew_shellenv
+        configure_homebrew_mirror_env
 
         brew update
         brew upgrade
@@ -81,6 +95,8 @@ case "$OSTYPE" in
     ;;
     linux*)
         echo "Running on Linux"
+        mkdir -p "$dir/linux/dotfiles"
+        linux_git_add=("$dir/linux/dotfiles/.Brewfile" "$dir/linux/dotfiles/.zshrc")
 
         if command -v apt-get >/dev/null 2>&1; then
             run_nonblocking sudo apt-get update
@@ -89,11 +105,24 @@ case "$OSTYPE" in
             run_nonblocking sudo apt-get autoclean -y
         fi
 
+        init_brew_shellenv
+        if command -v brew >/dev/null 2>&1; then
+            configure_homebrew_mirror_env
+            run_nonblocking brew update
+            run_nonblocking brew upgrade
+            run_nonblocking brew cleanup
+            run_nonblocking brew bundle dump --force --file "$dir/linux/dotfiles/.Brewfile"
+        fi
+
         update_oh_my_zsh_components "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
-        [ -f "$HOME/.zshrc" ] && cp "$HOME/.zshrc" "$dir/linux/.zshrc"
+        [ -f "$HOME/.zshrc" ] && cp "$HOME/.zshrc" "$dir/linux/dotfiles/.zshrc"
+        if [ -f "$HOME/.p10k.zsh" ]; then
+            cp "$HOME/.p10k.zsh" "$dir/linux/dotfiles/.p10k.zsh"
+            linux_git_add+=("$dir/linux/dotfiles/.p10k.zsh")
+        fi
 
-        git add "$dir/linux/.zshrc"
+        git add "${linux_git_add[@]}"
         git commit -m "autoupdate"
         git push
         exit 0
