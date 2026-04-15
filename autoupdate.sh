@@ -3,6 +3,7 @@
 set -euo pipefail
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+sudo_keepalive_pid=""
 
 update_git_repo() {
     local path="$1"
@@ -39,6 +40,34 @@ run_nonblocking() {
     fi
 }
 
+cleanup_sudo_keepalive() {
+    if [ -n "${sudo_keepalive_pid:-}" ]; then
+        kill "$sudo_keepalive_pid" >/dev/null 2>&1 || true
+    fi
+}
+
+trap cleanup_sudo_keepalive EXIT
+
+ensure_sudo_session() {
+    if ! command -v sudo >/dev/null 2>&1; then
+        return 0
+    fi
+
+    if [ "$(id -u)" -eq 0 ]; then
+        return 0
+    fi
+
+    sudo -v
+
+    if [ -z "${sudo_keepalive_pid:-}" ]; then
+        while true; do
+            sudo -n true >/dev/null 2>&1 || exit
+            sleep 60
+        done &
+        sudo_keepalive_pid=$!
+    fi
+}
+
 init_brew_shellenv() {
     if [ -x /opt/homebrew/bin/brew ]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -69,6 +98,7 @@ case "$OSTYPE" in
     solaris*) echo "SOLARIS" ;;
     darwin*)
         echo "Running on macOS"
+        ensure_sudo_session
 
         init_brew_shellenv
         configure_homebrew_mirror_env
@@ -106,6 +136,7 @@ case "$OSTYPE" in
         echo "Running on Linux"
         mkdir -p "$dir/linux/dotfiles"
         linux_git_add=("$dir/linux/dotfiles/.Brewfile" "$dir/linux/dotfiles/.zshrc")
+        ensure_sudo_session
 
         if command -v apt-get >/dev/null 2>&1; then
             run_nonblocking sudo apt-get update

@@ -29,6 +29,7 @@ fi
 
 current_step=0
 total_steps=0
+sudo_keepalive_pid=""
 
 log_stage() {
     current_step=$((current_step + 1))
@@ -71,6 +72,14 @@ handle_error() {
 
 trap 'handle_error $? $LINENO "$BASH_COMMAND"' ERR
 
+cleanup_sudo_keepalive() {
+    if [ -n "${sudo_keepalive_pid:-}" ]; then
+        kill "$sudo_keepalive_pid" >/dev/null 2>&1 || true
+    fi
+}
+
+trap cleanup_sudo_keepalive EXIT
+
 close_current_terminal() {
     case "${TERM_PROGRAM:-}" in
         Apple_Terminal)
@@ -86,6 +95,30 @@ backup_zshrc() {
     if [ -f "$HOME/.zshrc" ]; then
         log_stage "Backup existing .zshrc"
         run_cmd cp "$HOME/.zshrc" "$HOME/.zshrc.bak"
+    fi
+}
+
+ensure_sudo_session() {
+    local reason="$1"
+
+    if ! command -v sudo >/dev/null 2>&1; then
+        return 0
+    fi
+
+    if [ "$(id -u)" -eq 0 ]; then
+        return 0
+    fi
+
+    log_stage "Authenticate sudo"
+    log_info "$reason"
+    run_cmd sudo -v
+
+    if [ -z "${sudo_keepalive_pid:-}" ]; then
+        while true; do
+            sudo -n true >/dev/null 2>&1 || exit
+            sleep 60
+        done &
+        sudo_keepalive_pid=$!
     fi
 }
 
@@ -127,6 +160,7 @@ case "$OSTYPE" in
 
         total_steps=7
         log_stage "Platform detection: macOS"
+        ensure_sudo_session "Administrator access will be reused during setup so you only need to authenticate once."
         log_stage "Homebrew bootstrap"
         run_cmd "$dir/macos/brew.sh" "$dir/macos/dotfiles/.Brewfile"
         log_stage "Oh My Zsh and plugins"
@@ -142,6 +176,7 @@ case "$OSTYPE" in
     linux*)
         total_steps=7
         log_stage "Platform detection: Linux"
+        ensure_sudo_session "Administrator access will be reused during setup so apt and installer steps do not keep prompting."
         log_stage "Linux base packages and mirrors"
         run_cmd "$dir/linux/etc.sh"
         log_stage "Homebrew bootstrap"
