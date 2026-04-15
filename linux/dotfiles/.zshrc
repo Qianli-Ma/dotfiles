@@ -68,17 +68,11 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git command-not-found extract zsh-autosuggestions zsh-syntax-highlighting zsh-completions)
 
-# Some Linux systems leave a dangling Docker completion symlink in the vendor
-# completions directory, which makes compinit fail. Drop that directory when
-# the broken entry is present and let Oh My Zsh initialize completions once.
-if [[ -L /usr/share/zsh/vendor-completions/_docker && ! -e /usr/share/zsh/vendor-completions/_docker ]]; then
-  fpath=(${fpath:#/usr/share/zsh/vendor-completions})
-fi
-
 # User configuration
 
 # export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 # export MANPATH="/usr/local/man:$MANPATH"
+# Docker completion path patching is injected by setup/autoupdate when needed.
 source $ZSH/oh-my-zsh.sh
 
 # You may need to manually set your language environment

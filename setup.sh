@@ -30,6 +30,8 @@ fi
 current_step=0
 total_steps=0
 sudo_keepalive_pid=""
+docker_patch_start="# >>> docker completion patch >>>"
+docker_patch_end="# <<< docker completion patch <<<"
 
 log_stage() {
     current_step=$((current_step + 1))
@@ -96,6 +98,75 @@ backup_zshrc() {
         log_stage "Backup existing .zshrc"
         run_cmd cp "$HOME/.zshrc" "$HOME/.zshrc.bak"
     fi
+}
+
+strip_managed_block() {
+    local file="$1"
+    local tmp_file
+
+    [ -f "$file" ] || return 0
+
+    tmp_file="$(mktemp)"
+    awk -v start="$docker_patch_start" -v end="$docker_patch_end" '
+        $0 == start { skip = 1; next }
+        $0 == end { skip = 0; next }
+        !skip { print }
+    ' "$file" > "$tmp_file"
+    mv "$tmp_file" "$file"
+}
+
+discover_docker_completion_dirs() {
+    local completion_dir
+
+    if ! command -v zsh >/dev/null 2>&1; then
+        return 0
+    fi
+
+    while IFS= read -r completion_dir; do
+        [ -n "$completion_dir" ] || continue
+        if [ -e "$completion_dir/_docker" ] || [ -L "$completion_dir/_docker" ]; then
+            printf '%s\n' "$completion_dir"
+        fi
+    done < <(zsh -fc 'print -l $fpath' 2>/dev/null || true)
+}
+
+patch_zshrc_for_docker() {
+    local file="$1"
+    local source_name="$2"
+    local tmp_file
+    local inserted=0
+    local docker_completion_dirs=()
+    local docker_completion_dir
+
+    [ -f "$file" ] || return 0
+
+    strip_managed_block "$file"
+
+    if command -v docker >/dev/null 2>&1; then
+        return 0
+    fi
+
+    while IFS= read -r docker_completion_dir; do
+        docker_completion_dirs+=("$docker_completion_dir")
+    done < <(discover_docker_completion_dirs)
+
+    [ "${#docker_completion_dirs[@]}" -gt 0 ] || return 0
+
+    tmp_file="$(mktemp)"
+    while IFS= read -r line; do
+        if [ "$inserted" -eq 0 ] && [ "$line" = 'source $ZSH/oh-my-zsh.sh' ]; then
+            printf '%s\n' "$docker_patch_start" >> "$tmp_file"
+            printf '%s\n' "# Docker is not installed on this machine, so $source_name removed" >> "$tmp_file"
+            printf '%s\n' '# Docker completion directories before Oh My Zsh initializes compinit.' >> "$tmp_file"
+            for docker_completion_dir in "${docker_completion_dirs[@]}"; do
+                printf 'fpath=(${fpath:#%s})\n' "$docker_completion_dir" >> "$tmp_file"
+            done
+            printf '%s\n\n' "$docker_patch_end" >> "$tmp_file"
+            inserted=1
+        fi
+        printf '%s\n' "$line" >> "$tmp_file"
+    done < "$file"
+    mv "$tmp_file" "$file"
 }
 
 ensure_sudo_session() {
@@ -168,6 +239,7 @@ case "$OSTYPE" in
         backup_zshrc
         log_stage "Copy macOS dotfiles"
         run_cmd rsync -a --exclude ".DS_Store" "$dir/macos/dotfiles/" "$HOME/"
+        patch_zshrc_for_docker "$HOME/.zshrc" "setup"
         log_stage "Apply iTerm2 preferences"
         run_cmd "$dir/macos/iterm2.sh"
 
@@ -186,6 +258,7 @@ case "$OSTYPE" in
         backup_zshrc
         log_stage "Copy Linux dotfiles"
         run_cmd rsync -a --exclude ".DS_Store" "$dir/linux/dotfiles/" "$HOME/"
+        patch_zshrc_for_docker "$HOME/.zshrc" "setup"
 
         finish_and_reload
     ;;

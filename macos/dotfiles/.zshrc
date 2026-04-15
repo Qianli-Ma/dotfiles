@@ -72,6 +72,7 @@ autoload -U compinit && compinit
 
 # export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 # export MANPATH="/usr/local/man:$MANPATH"
+# Docker completion path patching is injected by setup/autoupdate when needed.
 source $ZSH/oh-my-zsh.sh
 
 # You may need to manually set your language environment

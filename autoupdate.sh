@@ -4,6 +4,8 @@ set -euo pipefail
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 sudo_keepalive_pid=""
+docker_patch_start="# >>> docker completion patch >>>"
+docker_patch_end="# <<< docker completion patch <<<"
 
 update_git_repo() {
     local path="$1"
@@ -94,6 +96,75 @@ write_brewfile_from_leaves() {
     mv "$tmp_file" "$file"
 }
 
+strip_managed_block() {
+    local file="$1"
+    local tmp_file
+
+    [ -f "$file" ] || return 0
+
+    tmp_file="$(mktemp)"
+    awk -v start="$docker_patch_start" -v end="$docker_patch_end" '
+        $0 == start { skip = 1; next }
+        $0 == end { skip = 0; next }
+        !skip { print }
+    ' "$file" > "$tmp_file"
+    mv "$tmp_file" "$file"
+}
+
+discover_docker_completion_dirs() {
+    local completion_dir
+
+    if ! command -v zsh >/dev/null 2>&1; then
+        return 0
+    fi
+
+    while IFS= read -r completion_dir; do
+        [ -n "$completion_dir" ] || continue
+        if [ -e "$completion_dir/_docker" ] || [ -L "$completion_dir/_docker" ]; then
+            printf '%s\n' "$completion_dir"
+        fi
+    done < <(zsh -fc 'print -l $fpath' 2>/dev/null || true)
+}
+
+patch_zshrc_for_docker() {
+    local file="$1"
+    local source_name="$2"
+    local tmp_file
+    local inserted=0
+    local docker_completion_dirs=()
+    local docker_completion_dir
+
+    [ -f "$file" ] || return 0
+
+    strip_managed_block "$file"
+
+    if command -v docker >/dev/null 2>&1; then
+        return 0
+    fi
+
+    while IFS= read -r docker_completion_dir; do
+        docker_completion_dirs+=("$docker_completion_dir")
+    done < <(discover_docker_completion_dirs)
+
+    [ "${#docker_completion_dirs[@]}" -gt 0 ] || return 0
+
+    tmp_file="$(mktemp)"
+    while IFS= read -r line; do
+        if [ "$inserted" -eq 0 ] && [ "$line" = 'source $ZSH/oh-my-zsh.sh' ]; then
+            printf '%s\n' "$docker_patch_start" >> "$tmp_file"
+            printf '%s\n' "# Docker is not installed on this machine, so $source_name removed" >> "$tmp_file"
+            printf '%s\n' '# Docker completion directories before Oh My Zsh initializes compinit.' >> "$tmp_file"
+            for docker_completion_dir in "${docker_completion_dirs[@]}"; do
+                printf 'fpath=(${fpath:#%s})\n' "$docker_completion_dir" >> "$tmp_file"
+            done
+            printf '%s\n\n' "$docker_patch_end" >> "$tmp_file"
+            inserted=1
+        fi
+        printf '%s\n' "$line" >> "$tmp_file"
+    done < "$file"
+    mv "$tmp_file" "$file"
+}
+
 case "$OSTYPE" in
     solaris*) echo "SOLARIS" ;;
     darwin*)
@@ -116,6 +187,7 @@ case "$OSTYPE" in
 
         [ -f "$HOME/.bash-profile" ] && cp "$HOME/.bash-profile" "$dir/macos/dotfiles/"
         [ -f "$HOME/.zshrc" ] && cp "$HOME/.zshrc" "$dir/macos/dotfiles/"
+        patch_zshrc_for_docker "$dir/macos/dotfiles/.zshrc" "autoupdate"
         [ -f "$HOME/.p10k.zsh" ] && cp "$HOME/.p10k.zsh" "$dir/macos/dotfiles/"
 
         mkdir -p "$dir/macos/iterm2"
@@ -157,6 +229,7 @@ case "$OSTYPE" in
         update_oh_my_zsh_components "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
         [ -f "$HOME/.zshrc" ] && cp "$HOME/.zshrc" "$dir/linux/dotfiles/.zshrc"
+        patch_zshrc_for_docker "$dir/linux/dotfiles/.zshrc" "autoupdate"
         if [ -f "$HOME/.p10k.zsh" ]; then
             cp "$HOME/.p10k.zsh" "$dir/linux/dotfiles/.p10k.zsh"
             linux_git_add+=("$dir/linux/dotfiles/.p10k.zsh")
