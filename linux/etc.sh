@@ -147,10 +147,16 @@ configure_apt_mirror() {
 
     if ! command -v snap >/dev/null 2>&1; then
         log_stage "Install snapd"
+        log_info "Trying to install snapd without refreshing package lists first."
+        log_info "If apt metadata is missing or stale, the script will refresh package lists and retry."
         wait_for_apt_to_finish
-        run_cmd sudo apt-get update
-        wait_for_apt_to_finish
-        run_cmd sudo apt-get install -y snapd
+        if ! sudo apt-get install -y snapd; then
+            log_info "Initial snapd install failed. Refreshing package lists and retrying."
+            wait_for_apt_to_finish
+            run_cmd sudo apt-get update
+            wait_for_apt_to_finish
+            run_cmd sudo apt-get install -y snapd
+        fi
     else
         log_stage "Install snapd"
         log_info "snapd is already installed. Skipping installation."
@@ -171,6 +177,7 @@ configure_apt_mirror() {
 install_linux_packages() {
     if command -v apt-get >/dev/null 2>&1; then
         log_stage "Install Linux packages"
+        log_info "Refreshing package lists again after mirror selection so package installs use the selected mirror."
         wait_for_apt_to_finish
         run_cmd sudo apt-get update
         wait_for_apt_to_finish
