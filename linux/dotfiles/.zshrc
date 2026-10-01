@@ -1,118 +1,36 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
+# Portable starter shell. Keep machine-specific additions in ~/.zshrc.local.
+for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do
+  if [[ -x "$brew_path" ]]; then
+    eval "$("$brew_path" shellenv)"
+    break
+  fi
+done
+unset brew_path
+
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
-
-# Path to your oh-my-zsh installation.
-export ZSH=~/.oh-my-zsh
-
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
-#ZSH_THEME="robby-mod-mac"
-# ZSH_THEME="agnoster"
-POWERLEVEL9K_MODE='nerdfont-complete'
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
 ZSH_THEME="powerlevel10k/powerlevel10k"
-# POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon ssh user root_indicator dir dir_writable vcs)
-# POWERLEVEL9K_SHORTEN_DIR_LENGTH=3
-# POWERLEVEL9K_SHORTEN_STRATEGY=truncate_middle
-# # POWERLEVEL9K_PROMPT_ON_NEWLINE=true
-# # POWERLEVEL9K_RPROMPT_ON_NEWLINE=true
-# # POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=( status background_jobs history battery)
-# POWERLEVEL9K_DISABLE_RPROMPT=true
-# POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(os_icon battery time ssh user root_indicator history background_jobs status newline virtualenv dir dir_writable vcs)
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion. Case
-# sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
-
-# Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git command-not-found extract zsh-autosuggestions zsh-syntax-highlighting zsh-completions)
-
-# User configuration
-
-# export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
-# export MANPATH="/usr/local/man:$MANPATH"
-# Docker completion path patching is injected by setup/autoupdate when needed.
-source $ZSH/oh-my-zsh.sh
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# ssh
-# export SSH_KEY_PATH="~/.ssh/dsa_id"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-elif [[ -x $HOME/.linuxbrew/bin/brew ]]; then
-  eval "$($HOME/.linuxbrew/bin/brew shellenv)"
-fi
-
-export HOMEBREW_BOTTLE_DOMAIN="${HOMEBREW_BOTTLE_DOMAIN:-https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles}"
-export HOMEBREW_API_DOMAIN="${HOMEBREW_API_DOMAIN:-https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api}"
-
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:$PATH"
-
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+plugins=(git extract)
+for plugin in zsh-completions zsh-autosuggestions zsh-syntax-highlighting; do
+  [[ -d "${ZSH_CUSTOM:-$ZSH/custom}/plugins/$plugin" ]] && plugins+=("$plugin")
+done
+unset plugin
+[[ -r "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt APPEND_HISTORY SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE
+alias dir='ls -al'
+[[ -r "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
 if command -v fzf >/dev/null 2>&1; then
   source <(fzf --zsh)
 fi
+[[ -r "$HOME/.iterm2_shell_integration.zsh" ]] && source "$HOME/.iterm2_shell_integration.zsh"
+# This file is explicitly curated for use across machines and backed up.
+[[ -r "$HOME/.zshrc.portable" ]] && source "$HOME/.zshrc.portable"
+# This file stays on its own machine and is never copied into deployment settings.
+[[ -r "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+# A missing optional file must not make shell startup return failure.
+true
